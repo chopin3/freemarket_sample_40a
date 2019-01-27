@@ -7,13 +7,16 @@ Rails.application.routes.draw do
       get 'search' => 'items#search'
     end
   end
-  post 'item/:id' => 'items#stop'
+  # 出品ページのカテゴリー、ブランドの非同期通信用
   post 'items/category/search' => 'categories#search'
+  post 'items/brand/search' => 'brands#search'
 
   get 'user/:id' => 'users#show'
   post 'rate/:id' => 'rates#create'
 
   resources :categories, only:[:show], path: 'category'
+
+  resources :brands, only:[:show], path: 'brand'
 
   get 'mypage/card' => 'mypages#card'
   get 'mypage/card/create' => 'mypages#buy'
@@ -31,8 +34,6 @@ Rails.application.routes.draw do
 
   resources :mypages, path: 'mypage'
   delete 'items/:id' =>'items#destroy'
-  # これ必要な数とアクションでルーティングしないとrake routesがキモい
-  # resources :transactions, path: 'transaction/buy/:item_id'
 
   resources :transactions, path: 'transaction' do
     collection do

@@ -1,5 +1,5 @@
 class ItemsController < ApplicationController
-  before_action :set_item,only:[:edit,:update,:show,:destroy, :stop]
+  before_action :set_item,only:[:edit,:update,:show,:destroy,:stop]
   before_action :user_collation,only:[:edit,:update,:destroy]
   before_action :user_login,only:[:new, :show]
 
@@ -8,7 +8,7 @@ class ItemsController < ApplicationController
   OTHERS = 3
 
   def index
-    @item = Item.order("created_at DESC").limit(4).where.not(item_state_id: 2)
+    @items = Item.where(brand_id: 5).order("created_at DESC").limit(4)
     @items_for_woman = Category.get_items_for(WOMAN)
     @items_for_man = Category.get_items_for(MAN)
     @items_for_others = Category.get_items_for(OTHERS)
@@ -22,14 +22,17 @@ class ItemsController < ApplicationController
 
   def show
   	@item = Item.find(params[:id])
-    @user = @item.user
-    @goods = Rate.where(rate: 1, user_id: @user.id)
-    @normals = Rate.where(rate: 2, user_id: @user.id)
-    @bads = Rate.where(rate: 3, user_id: @user.id)
+    id = @item.user_id
+    @goods = Rate.where(rate: 1, user_id: id)
+    @normals = Rate.where(rate: 2, user_id: id)
+    @bads = Rate.where(rate: 3, user_id: id)
   end
 
   def create
+    brand = Brand.find_by(name:params[:item][:brand])
     @item =Item.new(exhibit_params)
+    brand == nil ? @item.brand_id = 1 : @item.brand_id = brand.id
+    @item.save
     if @item.save
       respond_to do |format|
         format.js
@@ -44,20 +47,13 @@ class ItemsController < ApplicationController
   end
 
   def destroy
-    item = Item.find(params[:id])
-    if item.user_id == current_user.id
-      if item.destroy
-        redirect_to root_path notice:'削除できました'
+    if @item.user_id == current_user.id
+      if @item.destroy
+        redirect_to root_path notice:'編集できました'
       else
         redirect_to root_path notice: 'エラーが発生しました。'
       end
     end
-  end
-
-  def stop
-    @item.item_state_id = 2
-    @item.save
-    redirect_to root_path
   end
 
   def edit
